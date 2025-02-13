@@ -1,66 +1,59 @@
-import express from "express";
+import express from "express"
 import { AppDataSource } from "../data-source";
 import { User } from "../entity/User";
 
-const router = express.Router();
+const router = express.Router()
+const usersRepository = AppDataSource.getRepository(User);
 
 router.get("/", async (req, res) => {
-    const usersRepository = AppDataSource.getRepository(User);
-
-    
     const users = await usersRepository.find();
     
     res.json(users);
+    return
 })
 
 router.post("/create", async (req, res) =>{
-    const usersRepository = AppDataSource.getRepository(User);
-
     const user = new User();
+
     user.name = req.body.name
     user.phone = req.body.phone
     user.email = req.body.email
 
     const inserted = await usersRepository.save(user)
-    res.json(inserted)
+    res.status(201).json(inserted)
+    return
 })
 
 router.put("/update/:id", async (req, res) => {
-    const id = parseInt(req.params.id)
-    const usersRepository = AppDataSource.getRepository(User);
     const user = await usersRepository.findOneBy({
-        id: id
+        id: parseInt(req.params.id)
     })
 
     if(user){
         user.name = req.body.name
         user.phone = req.body.phone
         user.email = req.body.email
-        
+
         const saved = await usersRepository.save(user)
-        res.json(saved)
+        res.status(200).json(saved)
+        return
     }else{
-        res.status(404).json({
-            "message": "Not found"
-        })
+        res.status(404).send("Not found!")
+        return
     }
 })
 
 router.delete("/delete/:id", async(req, res) =>{
-    const id = parseInt(req.params.id)
-    const usersRepository = AppDataSource.getRepository(User);
-
     const user = await usersRepository.findOneBy({
-        id: id
+        id: parseInt(req.params.id)
     })
 
     if(user){
-        const saved = await usersRepository.remove(user)
+        await usersRepository.remove(user)
         res.status(204).send()
+        return
     }else{
-        res.status(404).json({
-            "message": "Not found"
-        })
+        res.status(404).send("Not found!")
     }
 })
 
